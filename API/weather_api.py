@@ -4,7 +4,7 @@ import numpy as np
 
 
 base_url = "https://api.openweathermap.org/data/2.5/weather?"
-api_key = "0e00fc2e12f7078bfa2c634a0c063043"
+api_key = "???"
 city = "Odense"
 url = base_url + "appid=" + api_key + "&q=" + city
 
