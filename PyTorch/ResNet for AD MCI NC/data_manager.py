@@ -1,7 +1,6 @@
 import os
 import shutil
 import pandas as pd
-import random
 
 def copy_data(excel_file, source_root="ADNI", destination_root="Data", categories=["AD", "MCI", "NC"]):
     # Create Data/train/{category} and Data/test/{category} directories
@@ -18,23 +17,25 @@ def copy_data(excel_file, source_root="ADNI", destination_root="Data", categorie
     for category in categories:
         if category in xls.sheet_names:
             df = pd.read_excel(xls, sheet_name=category, dtype=str)  # Read subject IDs as strings
+            subject_ids = df.iloc[:, 0].tolist()  # Get the list of subject IDs
 
-            # Get the list of subject IDs in the category
-            subject_ids = df.iloc[:, 0].tolist()
+            # Sort subject_ids to ensure consistency
+            subject_ids.sort()
 
-            # Shuffle subject_ids randomly
-            random.shuffle(subject_ids)
+            # Divide into 5 equal sections
+            split_size = len(subject_ids) // 5
+            sections = [subject_ids[i * split_size: (i + 1) * split_size] for i in range(5)]
 
-            # Calculate the number of images for the test set (1/5 of the total images)
-            num_test = len(subject_ids) // 5
+            # The last section gets any remaining subjects (in case of uneven division)
+            sections[-1].extend(subject_ids[5 * split_size:])
 
-            # Split into train and test sets
-            test_ids = subject_ids[:num_test]
-            train_ids = subject_ids[num_test:]
+            # Use the first 2 sections for testing, the remaining 3 sections for training
+            test_ids = [subject_id for section in sections[:1] for subject_id in section]  # First 1 sections for testing
+            train_ids = [subject_id for section in sections[1:] for subject_id in section]  # Remaining 4 sections for training
 
-            # Process test set
+            # Copy test set
             for subject_id in test_ids:
-                src_file = os.path.join("../", category, source_root, subject_id, "std_T1.nii")
+                src_file = os.path.join("../", category, source_root, subject_id, "GM.nii")
                 dest_file = os.path.join(destination_root, 'test', category, f"{subject_id}.nii")
 
                 if os.path.exists(src_file):
@@ -43,9 +44,9 @@ def copy_data(excel_file, source_root="ADNI", destination_root="Data", categorie
                 else:
                     print(f"Missing: {src_file}")
 
-            # Process train set
+            # Copy train set
             for subject_id in train_ids:
-                src_file = os.path.join("../", category, source_root, subject_id, "std_T1.nii")
+                src_file = os.path.join("../", category, source_root, subject_id, "GM.nii")
                 dest_file = os.path.join(destination_root, 'train', category, f"{subject_id}.nii")
 
                 if os.path.exists(src_file):
@@ -54,16 +55,15 @@ def copy_data(excel_file, source_root="ADNI", destination_root="Data", categorie
                 else:
                     print(f"Missing: {src_file}")
 
-    print("✅ Done! All files copied successfully.")
+    print("✅ Done! Train/Test split is balanced across all categories.")
 
+'''
+Usage Example:
 
-    '''
-    How to usage:
-    
-    excel_file = "../Subject list.xlsx"
-    source_root = "ADNI"
-    destination_root = "Data"
-    categories = ["AD", "MCI", "NC"]
+excel_file = "../Subject list.xlsx"
+source_root = "ADNI"
+destination_root = "Data"
+categories = ["AD", "MCI", "NC"]
 
-    DM.copy_data(excel_file,source_root,destination_root,categories)
-    '''
+copy_data(excel_file, source_root, destination_root, categories)
+'''
