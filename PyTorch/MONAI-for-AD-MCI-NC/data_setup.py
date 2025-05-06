@@ -23,11 +23,11 @@ class MultiModalSeparateNiiDataset(Dataset):
 
         for class_name in self.class_names:
             class_folder = os.path.join(data_dir, class_name)
-            pet_files = [f for f in os.listdir(class_folder) if "SUV_GM" in f]
+            pet_files = [f for f in os.listdir(class_folder) if "SUV" in f]
             for pet_file in pet_files:
-                subject_id = pet_file.replace("SUV_GM.nii", "")
-                pet_path = os.path.join(class_folder, f"{subject_id}SUV_GM.nii")
-                mri_path = os.path.join(class_folder, f"{subject_id}GM.nii")
+                subject_id = pet_file.replace("SUV.nii", "")
+                pet_path = os.path.join(class_folder, f"{subject_id}SUV.nii")
+                mri_path = os.path.join(class_folder, f"{subject_id}std_T1.nii")
                 self.data.append((mri_path, pet_path, class_name))
 
         random.shuffle(self.data)
