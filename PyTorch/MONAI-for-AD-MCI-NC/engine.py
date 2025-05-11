@@ -161,8 +161,8 @@ def train(model: torch.nn.Module,
         results["test_metrics"].append(metrics)
         results["classification_summaries"].append(classification_summary)
 
-        if test_acc > 0.72:
-            break
+        # if test_acc > 0.72:
+        #     break
         
 
     return results
