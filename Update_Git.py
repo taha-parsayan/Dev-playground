@@ -1,4 +1,5 @@
 import subprocess
+import sys
 
 def git_command(command):
     """Function to run git commands."""
