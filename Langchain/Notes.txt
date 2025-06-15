@@ -1,0 +1,12 @@
+Test_0:
+What is pydantic and how to use it
+
+Test_1:
+Basic chatbot
+
+Test_2:
+More complex chatbot. We can define how the llm should respond to the prompt (for example in a funny way)
+
+Test_3"
+Outputparsers to extract info from the output of the llm model
+prompt -> llm -> parser
