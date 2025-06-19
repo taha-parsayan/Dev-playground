@@ -4,11 +4,15 @@ from langchain_community import document_loaders
 from langchain_community.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
+
+
 # Add the parent directory to the system path
 current_path = os.getcwd()
 parent_path = os.path.abspath(os.path.join(current_path, ".."))
 sys.path.append(parent_path)
 from Update_Git import git_add, git_commit, git_push
+
+
 
 # Update Git Repository
 try:
@@ -18,6 +22,8 @@ try:
     git_push("main")
 except Exception as e:
     print(f"An error occurred while updating the git repository\n: {e}")
+
+
 
 # Get the document from webpage and split it into chunks
 def document_loader(url):
