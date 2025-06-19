@@ -70,7 +70,7 @@ def create_chain(vector_store):
 
     #prompt
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "Answer the user's question based on the given context: {context}"),
+        ("system", "Answer the user's question based on the given context: {context} in a funny way"),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}")
     ])
@@ -122,4 +122,5 @@ if __name__ == "__main__":
         chat_history.append(HumanMessage(content=user_input))
         chat_history.append(AIMessage(content=response))
         print("AI: ", response)
+        print("\n")
 
