@@ -52,7 +52,7 @@ def create_chain():
 # Main
 if __name__ == "__main__":
     print("\n")
-    url = "https://github.com/taha-parsayan/OPETIA"
+    url = "https://fsl.fmrib.ox.ac.uk/fsl/docs/#/install/linux"
     docs = document_loader(url)
     print(f"Number of documents loaded: {docs[12]}")
 
