@@ -55,5 +55,5 @@ if __name__ == "__main__":
     url = "https://surfer.nmr.mgh.harvard.edu/fswiki"
     docs = document_loader(url)
     print(f"Number of documents loaded: {len(docs)}")
-    print(f"\nFirst document: {docs[0]}")
+    print(f"\nFirst document: {docs[5]}")
 
