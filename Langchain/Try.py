@@ -46,7 +46,7 @@ def document_loader(url):
 
 def create_db(docs):
     embedding = OpenAIEmbeddings()
-    vectorstore = FAISS.from_documents(docs, embedding)
+    vectorstore = FAISS.from_documents(docs, embedding = embedding)
 
     return vectorstore
 
