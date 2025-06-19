@@ -3,8 +3,8 @@ import sys
 from langchain_community import document_loaders
 from langchain_community.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-
-
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores.faiss import FAISS
 
 # Add the parent directory to the system path
 current_path = os.getcwd()
@@ -42,8 +42,13 @@ def document_loader(url):
 
     return split_docs
 
+
+
 def create_db(docs):
-    pass
+    embedding = OpenAIEmbeddings()
+    vectorstore = FAISS.from_documents(docs, embedding)
+
+    return vectorstore
 
 def create_chain():
     pass
@@ -54,6 +59,6 @@ if __name__ == "__main__":
     print("\n")
     url = "https://surfer.nmr.mgh.harvard.edu/fswiki"
     docs = document_loader(url)
-    print(f"Number of documents loaded: {len(docs)}")
-    print(f"\nFirst document: {docs[5]}")
+    vectorstore = create_db(docs)
+    print(vectorstore)
 
