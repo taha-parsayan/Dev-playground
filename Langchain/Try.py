@@ -1,5 +1,6 @@
 import os
 import sys
+from dotenv import load_dotenv
 from langchain_community import document_loaders
 from langchain_community.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -12,7 +13,8 @@ parent_path = os.path.abspath(os.path.join(current_path, ".."))
 sys.path.append(parent_path)
 from Update_Git import git_add, git_commit, git_push
 
-
+# Load environment variables
+load_dotenv(os.path.join(current_path, ".env"))
 
 # Update Git Repository
 try:
