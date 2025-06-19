@@ -34,8 +34,8 @@ def document_loader(url):
 
     # Split the documents into chunks
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 500,
-        chunk_overlap = 50,
+        chunk_size = 100,
+        chunk_overlap = 20,
     )
 
     split_docs = splitter.split_documents(docs)
