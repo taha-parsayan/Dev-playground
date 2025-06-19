@@ -52,7 +52,7 @@ def create_chain():
 # Main
 if __name__ == "__main__":
     print("\n")
-    url = "https://fsl.fmrib.ox.ac.uk/fsl/docs/#/install/linux"
+    url = "https://surfer.nmr.mgh.harvard.edu/fswiki"
     docs = document_loader(url)
     print(f"Number of documents loaded: {len(docs)}")
 
