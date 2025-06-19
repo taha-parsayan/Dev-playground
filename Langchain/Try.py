@@ -54,5 +54,5 @@ if __name__ == "__main__":
     print("\n")
     url = "https://github.com/taha-parsayan/OPETIA"
     docs = document_loader(url)
-    print(f"Number of documents loaded: {docs[10]}")
+    print(f"Number of documents loaded: {docs[12]}")
 
