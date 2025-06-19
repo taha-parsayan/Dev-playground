@@ -54,5 +54,5 @@ if __name__ == "__main__":
     print("\n")
     url = "https://fsl.fmrib.ox.ac.uk/fsl/docs/#/install/linux"
     docs = document_loader(url)
-    print(f"Number of documents loaded: {docs[12]}")
+    print(f"Number of documents loaded: {docs[1]}")
 
