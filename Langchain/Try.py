@@ -51,5 +51,7 @@ def create_chain():
 
 # Main
 if __name__ == "__main__":
-    pass
+    url = "https://github.com/taha-parsayan/OPETIA"
+    docs = document_loader(url)
+    print(f"Number of documents loaded: {len(docs)}")
 
