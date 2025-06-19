@@ -6,12 +6,20 @@ from langchain_community.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores.faiss import FAISS
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.output_parsers import StrOutputParser
+from langchain.chains import create_retrieval_chain
+from langchain_core.messages import HumanMessage, AIMessage
+
 
 # Add the parent directory to the system path
 current_path = os.getcwd()
 parent_path = os.path.abspath(os.path.join(current_path, ".."))
 sys.path.append(parent_path)
 from Update_Git import git_add, git_commit, git_push
+
 
 # Load environment variables
 load_dotenv(os.path.join(current_path, ".env"))
@@ -20,7 +28,7 @@ load_dotenv(os.path.join(current_path, ".env"))
 try:
     file_path = os.path.join(current_path, "Try.py")
     git_add(file_path)
-    git_commit("Update Try.py")
+    git_commit("Updated Try.py")
     git_push("main")
 except Exception as e:
     print(f"An error occurred while updating the git repository\n: {e}")
@@ -45,22 +53,73 @@ def document_loader(url):
     return split_docs
 
 
-
 def create_db(docs):
     embedding = OpenAIEmbeddings()
     vectorstore = FAISS.from_documents(docs, embedding = embedding)
 
     return vectorstore
 
-def create_chain():
-    pass
+
+def create_chain(vector_store):
+
+    # llm model
+    model = ChatOpenAI(
+        model_name = "gpt-3.5-turbo",
+        temperature = 0.5,
+    )
+
+    #prompt
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "Answer the user's question based on the given context: {context}"),
+        MessagesPlaceholder(variable_name="chat_history"),
+        ("human", "{input}")
+    ])
+
+    # Parser
+    output_parser = StrOutputParser()
+
+    # Chain
+    chain = create_stuff_documents_chain(
+        llm = model,
+        prompt = prompt,
+        output_parser= output_parser
+    )
+
+    retriever = vector_store.as_retriever(search_kwaargs = {"k": 3})  # Convert vector store into a retriever
+    retrieval_chain = create_retrieval_chain(
+        retriever, 
+        chain
+        )  # Create a retrieval-based chain
+
+    return retrieval_chain  # Return the retrieval chain
+
+
+# Function to ask a question
+def process_chat(chain, question, history):
+    response = chain.invoke({
+        "input": question,
+        "chat_history": history,
+        "context": docs
+    })
+
+    return response["answer"]
 
 
 # Main
 if __name__ == "__main__":
-    print("\n")
-    url = "https://surfer.nmr.mgh.harvard.edu/fswiki"
-    docs = document_loader(url)
-    vectorstore = create_db(docs)
-    print(type(vectorstore))
+    print("\n_______________________")
+    docs = document_loader("https://en.wikipedia.org/wiki/FreeSurfer")
+    vector_store = create_db(docs)
+    chain = create_chain(vector_store)
+
+    chat_history = []
+
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() == "exit":
+            break
+        response = process_chat(chain, user_input, chat_history)
+        chat_history.append(HumanMessage(content=user_input))
+        chat_history.append(AIMessage(content=response))
+        print("AI: ", response)
 
