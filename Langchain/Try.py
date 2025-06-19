@@ -62,5 +62,5 @@ if __name__ == "__main__":
     url = "https://surfer.nmr.mgh.harvard.edu/fswiki"
     docs = document_loader(url)
     vectorstore = create_db(docs)
-    print(vectorstore)
+    print(type(vectorstore))
 
