@@ -12,6 +12,8 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.output_parsers import StrOutputParser
 from langchain.chains import create_retrieval_chain
 from langchain_core.messages import HumanMessage, AIMessage
+from langchain.tools.retriever import create_retriever_tool
+from langchain_community.tools.tavily_search import TavilySearchResults
 
 
 # Add the parent directory to the system path
@@ -85,7 +87,7 @@ def create_chain(vector_store):
         output_parser= output_parser
     )
 
-    retriever = vector_store.as_retriever(search_kwaargs = {"k": 3})  # Convert vector store into a retriever
+    retriever = vector_store.as_retriever(search_kwaargs = {"k": 5})  # Convert vector store into a retriever
     retrieval_chain = create_retrieval_chain(
         retriever, 
         chain
