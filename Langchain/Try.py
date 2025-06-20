@@ -100,7 +100,19 @@ def create_chain(vector_store):
     )
 
     # tool for our web search
-    search = TavilySearch() 
+    search = TavilySearch(
+        max_results=5,
+        topic="general",
+        # include_answer=False,
+        # include_raw_content=False,
+        # include_images=False,
+        # include_image_descriptions=False,
+        # search_depth="basic",
+        # time_range="day",
+        # include_domains=None,
+        # exclude_domains=None,
+        # country=None
+    )
 
     # List of tools - we have 2 tools here
     tools = [search, retriever_tool]
