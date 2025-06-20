@@ -90,10 +90,6 @@ def create_chain(vector_store):
     # )
 
     retriever = vector_store.as_retriever(search_kwaargs = {"k": 5})  # Convert vector store into a retriever
-    retrieval_chain = create_retrieval_chain(
-        retriever, 
-        chain
-        )  # Create a retrieval-based chain
     
     # tool for our document 
     retriever_tool = create_retriever_tool(
