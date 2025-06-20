@@ -1,3 +1,30 @@
+"""
+Interactive Chat Agent with Document Retrieval and Web Search using LangChain
+
+This script implements a conversational agent that answers user questions using both:
+1. A vector-based retriever for contextual documents (e.g., FreeSurfer, OPETIA), and
+2. A web search tool (Tavily) for up-to-date information not covered in the documents.
+
+Key features:
+- Loads and chunks web content using LangChain's WebBaseLoader
+- Builds a FAISS vector store with OpenAI embeddings
+- Creates an OpenAI functions-enabled agent that can choose between document retrieval and web search tools
+- Maintains chat history for multi-turn conversations
+- Automatically updates the script via Git with `Update_Git.py`
+- Designed to handle biomedical tools like FreeSurfer and OPETIA
+
+To use:
+- Run the script and type a question (e.g., "What is OPETIA?")
+- Type "exit" to stop the session
+
+Requirements:
+- LangChain, FAISS, OpenAI, Tavily, python-dotenv
+- A `.env` file with necessary API keys (e.g., OpenAI, Tavily)
+
+Author: Mohammadtaha Parsayan
+"""
+
+
 import os
 import sys
 from dotenv import load_dotenv
