@@ -14,6 +14,7 @@ from langchain.chains import create_retrieval_chain
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain.tools.retriever import create_retriever_tool
 from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain.agents import AgentExecutor, create_openai_functions_agent
 
 
 # Add the parent directory to the system path
@@ -74,37 +75,63 @@ def create_chain(vector_store):
     prompt = ChatPromptTemplate.from_messages([
         ("system", "Answer the user's question based on the given context: {context} and try to be as annoying as possible."),
         MessagesPlaceholder(variable_name="chat_history"),
-        ("human", "{input}")
+        ("human", "{input}"),
+        MessagesPlaceholder(variable_name = "agent_scratchpad")
     ])
 
     # Parser
     output_parser = StrOutputParser()
 
     # Chain
-    chain = create_stuff_documents_chain(
-        llm = model,
-        prompt = prompt,
-        output_parser= output_parser
-    )
+    # chain = create_stuff_documents_chain(
+    #     llm = model,
+    #     prompt = prompt,
+    #     output_parser= output_parser
+    # )
 
     retriever = vector_store.as_retriever(search_kwaargs = {"k": 5})  # Convert vector store into a retriever
     retrieval_chain = create_retrieval_chain(
         retriever, 
         chain
         )  # Create a retrieval-based chain
+    
+    # tool for our document 
+    retriever_tool = create_retriever_tool(
+    retriever,
+    "toolbox_search", # identifier for the tool
+    "Use this tool when searching for information about FreeSurfer" # description of the tool
+    )
 
-    return retrieval_chain  # Return the retrieval chain
+    # tool for our web search
+    search = TavilySearchResults() 
+
+    # List of tools - we have 2 tools here
+    tools = [search, retriever_tool]
+
+    # Create an agent that uses the LLM, prompt, and tools (no chain here)
+    agent = create_openai_functions_agent(
+        llm = model,
+        prompt = prompt,
+        tools = tools
+    )
+
+    agentExecutor = AgentExecutor(
+        agent = agent,
+        tools = tools
+    )
+
+    return agentExecutor  # Return the retrieval chain
 
 
 # Function to ask a question
-def process_chat(chain, question, history):
-    response = chain.invoke({
+def process_chat(agentExecutor, question, history):
+    response = agentExecutor.invoke({
         "input": question,
         "chat_history": history,
         "context": docs
     })
 
-    return response["answer"]
+    return response["output"]
 
 
 # Main
