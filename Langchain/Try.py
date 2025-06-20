@@ -48,8 +48,8 @@ def document_loader(url):
 
     # Split the documents into chunks
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 100,
-        chunk_overlap = 20,
+        chunk_size = 500,
+        chunk_overlap = 50,
     )
 
     split_docs = splitter.split_documents(docs)
@@ -69,7 +69,7 @@ def create_chain(vector_store):
     # llm model
     model = ChatOpenAI(
         model_name = "gpt-3.5-turbo",
-        temperature = 0.5,
+        temperature = 1,
     )
 
     #prompt
