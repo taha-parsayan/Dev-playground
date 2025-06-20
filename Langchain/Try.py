@@ -70,7 +70,7 @@ def create_chain(vector_store):
 
     #prompt
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "Answer the user's question based on the given context: {context} in a funny way"),
+        ("system", "Answer the user's question based on the given context: {context} and try to be as annoying as possible."),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}")
     ])
