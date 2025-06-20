@@ -74,7 +74,7 @@ def create_chain(vector_store):
 
     #prompt
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "Answer the user's question based on the given context: {context} and try to be as annoying as possible."),
+        ("system", "Answer the user's question based on the given context: {context}. If you cannot find the answer, use the web search tool (Tavily)."),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}"),
         MessagesPlaceholder(variable_name = "agent_scratchpad")
