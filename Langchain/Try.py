@@ -13,7 +13,8 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain.chains import create_retrieval_chain
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain.tools.retriever import create_retriever_tool
-from langchain_community.tools.tavily_search import TavilySearchResults
+#from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_tavily import TavilySearch
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 
 
@@ -99,7 +100,7 @@ def create_chain(vector_store):
     )
 
     # tool for our web search
-    search = TavilySearchResults() 
+    search = TavilySearch() 
 
     # List of tools - we have 2 tools here
     tools = [search, retriever_tool]
