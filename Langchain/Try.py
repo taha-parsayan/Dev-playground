@@ -69,7 +69,7 @@ def create_chain(vector_store):
     # llm model
     model = ChatOpenAI(
         model_name = "gpt-3.5-turbo",
-        temperature = 0.5,
+        temperature = 1,
     )
 
     #prompt
