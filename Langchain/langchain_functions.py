@@ -4,6 +4,7 @@ This module provides a function to create a LangChain function that can be used 
 This module implements a conversational agent that answers user questions using both:
 1. A vector-based retriever for contextual documents (e.g., FreeSurfer, OPETIA), and
 2. A web search tool (Tavily) for up-to-date information not covered in the documents.
+3. Save chat history in a SQLite database and load it on startup.
 
 Key features:
 - Loads and chunks web content using LangChain's WebBaseLoader
@@ -39,6 +40,50 @@ from langchain.tools.retriever import create_retriever_tool
 #from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_tavily import TavilySearch
 from langchain.agents import AgentExecutor, create_openai_functions_agent
+import sqlite3
+from datetime import datetime
+
+
+
+# SQLite database setup
+def load_chat_history_from_database():
+    conn = sqlite3.connect('chat_history.db')
+    cursor = conn.cursor()
+
+    # Always try to create the table (harmless if it already exists)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            role TEXT NOT NULL,
+            message TEXT NOT NULL,
+            timestamp TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+
+    # Now read chat history
+    cursor.execute("SELECT role, message FROM history ORDER BY id ASC")
+    rows = cursor.fetchall()
+    history = []
+    for role, msg in rows:
+        if role == "human":
+            history.append(HumanMessage(content=msg))
+        else:
+            history.append(AIMessage(content=msg))
+
+    conn.close()  # optional but good practice
+    return history
+
+
+
+# Save chat history in the database
+def save_message_in_database(role, message):
+    conn = sqlite3.connect('chat_history.db')
+    cursor = conn.cursor()
+    timestamp = datetime.now().isoformat()
+    cursor.execute("INSERT INTO history (role, message, timestamp) VALUES (?, ?, ?)",
+                   (role, message, timestamp))
+    conn.commit()
 
 
 # Get the document from webpage and split it into chunks
