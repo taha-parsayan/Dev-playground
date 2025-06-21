@@ -43,7 +43,7 @@ from langchain.agents import AgentExecutor, create_openai_functions_agent
 import sqlite3
 from datetime import datetime
 
-
+#----------------------------------------------------------------------------
 
 # SQLite database setup
 def load_chat_history_from_database():
