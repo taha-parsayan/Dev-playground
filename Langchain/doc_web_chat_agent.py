@@ -68,6 +68,8 @@ if __name__ == "__main__":
         response = process_chat(chain, user_input, chat_history, docs)
         chat_history.append(HumanMessage(content=user_input))
         chat_history.append(AIMessage(content=response))
+        save_message_in_database("human", user_input)
+        save_message_in_database("ai", response)
         print("AI:\n", response)
         print("\n")
     
