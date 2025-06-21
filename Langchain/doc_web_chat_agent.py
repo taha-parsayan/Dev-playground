@@ -38,6 +38,7 @@ from Update_Git import git_add, git_commit, git_push
 
 
 # Load environment variables
+os.environ.pop("OPENAI_API_KEY", None) # Because it loads a key from some place I dont know!
 load_dotenv(os.path.join(current_path, ".env"))
 
 # Update Git Repository
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     vector_store = create_db(docs)
     chain = create_chain(vector_store)
 
-    chat_history = []
+    chat_history = load_chat_history_from_database()
 
     while True:
         user_input = input("You:\n")
