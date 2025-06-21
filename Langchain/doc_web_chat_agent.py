@@ -64,7 +64,7 @@ if __name__ == "__main__":
         user_input = input("You: ")
         if user_input.lower() == "exit":
             break
-        response = process_chat(chain, user_input, chat_history)
+        response = process_chat(chain, user_input, chat_history, docs)
         chat_history.append(HumanMessage(content=user_input))
         chat_history.append(AIMessage(content=response))
         print("AI: ", response)
