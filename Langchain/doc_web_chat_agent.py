@@ -61,7 +61,7 @@ if __name__ == "__main__":
         print(f"File not found: {path2}")
         sys.exit(1)
     
-    doc = document_loader("web", path1)
+    doc = document_loader("pdf", path2)
     vector_store = create_db(doc)
     chain = create_chain(vector_store)
 
