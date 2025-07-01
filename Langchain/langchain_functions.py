@@ -90,6 +90,13 @@ def save_message_in_database(role, message):
 #----------------------------------------------------------------------------
 # Langchain functions
 #----------------------------------------------------------------------------
+'''
+1. load the document
+2. split the document into chunks
+3. create a vector store from the chunks (embeddings)
+4. create a chain that uses the vector store and web search tool
+5. process the chat with the chain
+'''
 
 # Get the document from webpage and split it into chunks
 def document_loader(url):
@@ -108,14 +115,15 @@ def document_loader(url):
 
     return split_docs
 
-
+# Create a vector store from the documents
+# This will create a FAISS vector store using OpenAI embeddings
 def create_db(docs):
     embedding = OpenAIEmbeddings()
     vectorstore = FAISS.from_documents(docs, embedding = embedding)
 
     return vectorstore
 
-
+# Create a chain that uses the vector store and web search tool
 def create_chain(vector_store):
 
     # llm model
@@ -141,17 +149,23 @@ def create_chain(vector_store):
     #     prompt = prompt,
     #     output_parser= output_parser
     # )
-
-    retriever = vector_store.as_retriever(search_kwaargs = {"k": 5})  # Convert vector store into a retriever
     
-    # tool for our document 
+
+    '''
+    AGENTS:
+    1. document from specific webpage (url)
+    2. web search tool (Tavily)
+    '''
+
+    # 1. tool for document
+    retriever = vector_store.as_retriever(search_kwaargs = {"k": 5})  # Convert vector store into a retriever
     retriever_tool = create_retriever_tool(
     retriever,
     "toolbox_search", # identifier for the tool
     "Use this tool when searching for information about FreeSurfer" # description of the tool
     )
 
-    # tool for our web search
+    # 2. tool for web search
     search = TavilySearch(
         max_results=5,
         topic="general",
@@ -173,7 +187,8 @@ def create_chain(vector_store):
     agent = create_openai_functions_agent(
         llm = model,
         prompt = prompt,
-        tools = tools
+        tools = tools,
+        output_parser = output_parser,
     )
 
     agentExecutor = AgentExecutor(
