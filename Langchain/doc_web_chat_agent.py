@@ -55,14 +55,14 @@ except Exception as e:
 # Main
 if __name__ == "__main__":
     print("\n_______________________")
-    # path = "https://en.wikipedia.org/wiki/FreeSurfer"
-    path = os.path.join(current_path, "CV.pdf")
+    path1 = "https://en.wikipedia.org/wiki/FreeSurfer"
+    path2 = os.path.join(current_path, "CV.pdf")
     if not os.path.exists(path):
-        print(f"File not found: {path}")
+        print(f"File not found: {path2}")
         sys.exit(1)
     
-    doc = document_loader("pdf", path)
-    vector_store = create_db(path)
+    doc = document_loader("web", path1)
+    vector_store = create_db(doc)
     chain = create_chain(vector_store)
 
     chat_history = load_chat_history_from_database()
