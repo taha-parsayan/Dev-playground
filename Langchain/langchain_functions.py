@@ -28,7 +28,7 @@ Author: Mohammadtaha Parsayan
 import os
 import sys
 from langchain_community import document_loaders
-from langchain_community.document_loaders import WebBaseLoader
+from langchain_community.document_loaders import WebBaseLoader, PyPDFLoader, PDFPlumberLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores.faiss import FAISS
@@ -91,19 +91,25 @@ def save_message_in_database(role, message):
 # Langchain functions
 #----------------------------------------------------------------------------
 '''
-1. load the document
+1. load the document (webpage or PDF)
 2. split the document into chunks
 3. create a vector store from the chunks (embeddings)
 4. create a chain that uses the vector store and web search tool
 5. process the chat with the chain
 '''
 
-# Get the document from webpage and split it into chunks
-def document_loader(url):
+# Get the document from webpage or PDF and split it into chunks
+def document_loader(source_type, path):
 
-    # Load documents from a given URL
-    loader = WebBaseLoader(url)
-    docs = loader.load()
+    # Load documents
+    if source_type == "web":
+        loader = WebBaseLoader(path)
+        docs = loader.load()
+    elif source_type == "pdf":
+        loader = PDFPlumberLoader(path)
+        docs = loader.load()
+    else:
+        raise ValueError("Unsupported source type. Use 'web' or 'pdf'.")
 
     # Split the documents into chunks
     splitter = RecursiveCharacterTextSplitter(
@@ -129,7 +135,7 @@ def create_chain(vector_store):
     # llm model
     model = ChatOpenAI(
         model_name = "gpt-3.5-turbo",
-        temperature = 1,
+        temperature = 1.5,
     )
 
     #prompt
