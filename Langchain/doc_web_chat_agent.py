@@ -57,7 +57,7 @@ if __name__ == "__main__":
     print("\n_______________________")
     path1 = "https://en.wikipedia.org/wiki/FreeSurfer"
     path2 = os.path.join(current_path, "CV.pdf")
-    if not os.path.exists(path):
+    if not os.path.exists(path2):
         print(f"File not found: {path2}")
         sys.exit(1)
     
