@@ -21,10 +21,12 @@ Requirements:
 Author: Mohammadtaha Parsayan
 """
 
+#----------------------------------------------------------------------------
+# Import necessary libraries
+#----------------------------------------------------------------------------
 
 import os
 import sys
-from dotenv import load_dotenv
 from langchain_community import document_loaders
 from langchain_community.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -37,15 +39,16 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain.chains import create_retrieval_chain
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain.tools.retriever import create_retriever_tool
-#from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_tavily import TavilySearch
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 import sqlite3
 from datetime import datetime
 
 #----------------------------------------------------------------------------
-
 # SQLite database setup
+#----------------------------------------------------------------------------
+
+# SQLite load chat history from database
 def load_chat_history_from_database():
     conn = sqlite3.connect('chat_history.db')
     cursor = conn.cursor()
@@ -75,7 +78,6 @@ def load_chat_history_from_database():
     return history
 
 
-
 # Save chat history in the database
 def save_message_in_database(role, message):
     conn = sqlite3.connect('chat_history.db')
@@ -85,6 +87,9 @@ def save_message_in_database(role, message):
                    (role, message, timestamp))
     conn.commit()
 
+#----------------------------------------------------------------------------
+# Langchain functions
+#----------------------------------------------------------------------------
 
 # Get the document from webpage and split it into chunks
 def document_loader(url):
