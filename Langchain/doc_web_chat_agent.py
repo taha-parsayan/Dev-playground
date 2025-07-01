@@ -72,4 +72,3 @@ if __name__ == "__main__":
         save_message_in_database("ai", response)
         print("AI:\n", response)
         print("\n")
-    
