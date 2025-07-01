@@ -141,7 +141,7 @@ def create_chain(vector_store):
     ])
 
     # Parser
-    output_parser = StrOutputParser()
+    # output_parser = StrOutputParser()
 
     # Chain
     # chain = create_stuff_documents_chain(
@@ -188,7 +188,6 @@ def create_chain(vector_store):
         llm = model,
         prompt = prompt,
         tools = tools,
-        output_parser = output_parser,
     )
 
     agentExecutor = AgentExecutor(
