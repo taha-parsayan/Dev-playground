@@ -55,11 +55,13 @@ except Exception as e:
 # Main
 if __name__ == "__main__":
     print("\n_______________________")
-    # path = document_loader("https://en.wikipedia.org/wiki/FreeSurfer")
+    # path = "https://en.wikipedia.org/wiki/FreeSurfer"
     path = os.path.join(current_path, "CV.pdf")
     if not os.path.exists(path):
         print(f"File not found: {path}")
         sys.exit(1)
+    
+    doc = document_loader("pdf", path)
     vector_store = create_db(path)
     chain = create_chain(vector_store)
 
@@ -69,7 +71,7 @@ if __name__ == "__main__":
         user_input = input("You:\n")
         if user_input.lower() == "exit":
             break
-        response = process_chat(chain, user_input, chat_history, docs)
+        response = process_chat(chain, user_input, chat_history, doc)
         chat_history.append(HumanMessage(content=user_input))
         chat_history.append(AIMessage(content=response))
         save_message_in_database("human", user_input)
