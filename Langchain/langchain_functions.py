@@ -1,12 +1,13 @@
 """
 This module provides a function to create a LangChain function that can be used to call an LLM.
 
-This module implements a conversational agent that answers user questions using both:
-1. A vector-based retriever for contextual documents (e.g., FreeSurfer, OPETIA), and
-2. A web search tool (Tavily) for up-to-date information not covered in the documents.
-3. Save chat history in a SQLite database and load it on startup.
+This module implements a conversational agent that answers user questions using tools.
+These tools include:
+1. A vector-based retriever for contextual documents from a webpage
+2. A vector-based retriever for a PDF document
+3. A web search tool (Tavily) for up-to-date information not covered in
 
-Key features:
+Key features for the agent:
 - Loads and chunks web content using LangChain's WebBaseLoader
 - Builds a FAISS vector store with OpenAI embeddings
 - Creates an OpenAI functions-enabled agent that can choose between document retrieval and web search tools
@@ -27,7 +28,6 @@ Author: Mohammadtaha Parsayan
 
 import os
 import sys
-from langchain_community import document_loaders
 from langchain_community.document_loaders import WebBaseLoader, PyPDFLoader, PDFPlumberLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
@@ -41,6 +41,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from langchain.tools.retriever import create_retriever_tool
 from langchain_tavily import TavilySearch
 from langchain.agents import AgentExecutor, create_openai_functions_agent
+from langchain.tools import tool
 import sqlite3
 from datetime import datetime
 
@@ -50,8 +51,8 @@ from datetime import datetime
 
 # SQLite load chat history from database
 def load_chat_history_from_database():
-    conn = sqlite3.connect('chat_history.db')
-    cursor = conn.cursor()
+    conn = sqlite3.connect('chat_history.db') # Connect to the SQLite database
+    cursor = conn.cursor() # Create a cursor object to execute SQL commands
 
     # Always try to create the table (harmless if it already exists)
     cursor.execute('''
@@ -88,49 +89,118 @@ def save_message_in_database(role, message):
     conn.commit()
 
 #----------------------------------------------------------------------------
+# Tools for llm
+#----------------------------------------------------------------------------
+
+"""
+Tools are in a way that we create functions that actually work. For example a function gets a path 
+and lists all files in that path. Then it passess these outputs to llm. Then llm answers to our
+prompt using the outputs of that function.
+To see how it works, add verbose=True to the agentExecutor in the create_chain function.
+"""
+
+@tool
+def find_file_or_folder(name: str, search_root: str = "/Users/taha/") -> str:
+    """
+    Searches for a file or folder by exact name starting from a given directory.
+    Returns full path(s) of all matches.
+    Note: This can be slow if search_root is large.
+    """
+    matches = []
+    for root, dirs, files in os.walk(search_root):
+        # Check for matching files
+        if name in files:
+            matches.append(os.path.join(root, name))
+        # Check for matching directories
+        if name in dirs:
+            matches.append(os.path.join(root, name))
+
+    if not matches:
+        return f"No file or folder named '{name}' found under {search_root}."
+    
+    return f"Found {len(matches)} match(es):\n" + "\n".join(matches)
+
+
+@tool
+def list_files(path:str) -> str:
+    """
+    List all files and folders in the specified directory path.
+    Returns an error if the path does not exist or is not a directory.
+    """
+    if not os.path.exists(path):
+        return f"Path does not exist: {path}"
+    if not os.path.isdir(path):
+        return f"Path is not a directory: {path}"
+
+    files = os.listdir(path)
+    if not files:
+        return f"No files found in directory: {path}"
+    
+    return f"Files in {path}:\n" + "\n".join(files)
+
+
+@tool
+def ask_about_pdf(pdf_path: str, question: str) -> str:
+    """
+    Given a path to a PDF file and a user question, this tool reads the PDF and returns the answer.
+    Use this tool to extract structured insights from PDF documents like CVs, reports, etc.
+    """
+    
+    if not os.path.exists(pdf_path):
+        return f"PDF file does not exist: {pdf_path}"
+    if not pdf_path.endswith('.pdf'):
+        return f"Provided path is not a PDF file: {pdf_path}"
+    
+    try:
+        # Load and chunk the PDF document
+        loader = PDFPlumberLoader(pdf_path)
+        docs = loader.load()
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=500,
+            chunk_overlap=50,
+        )
+        split_docs = splitter.split_documents(docs)
+
+        # Create embeddings and vector store
+        embedding = OpenAIEmbeddings()
+        vectorstore = FAISS.from_documents(split_docs, embedding=embedding)
+        retriever = vectorstore.as_retriever(search_kwargs={"k": 5})  # Convert vector store into a retriever
+
+        # Retrieve relevant chunks
+        relevant_docs = retriever.get_relevant_documents(question)
+        context = "\n\n".join([doc.page_content for doc in relevant_docs])
+
+        # Use LLM to answer based on retrieved chunks
+        llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=1.5)
+        prompt = f"Answer the following question based on the context below.\n\nContext:\n{context}\n\nQuestion: {question}"
+        response = llm.invoke(prompt)
+
+        return response.content
+
+    except Exception as e:
+        return f"Error processing PDF file: {e}"
+
+
+@tool
+def create_folder(path: str) -> str:
+    """
+    Creates a new folder at the specified path.
+    Returns a success message if created, or an error message if it already exists or fails.
+    """
+
+    try:
+        if os.path.exists(path):
+            return f"Folder already exists: {path}"
+        os.makedirs(path)
+        return f"Folder created successfully: {path}"
+    except Exception as e:
+        return f"Error creating folder: {e}"
+
+#----------------------------------------------------------------------------
 # Langchain functions
 #----------------------------------------------------------------------------
-'''
-1. load the document (webpage or PDF)
-2. split the document into chunks
-3. create a vector store from the chunks (embeddings)
-4. create a chain that uses the vector store and web search tool
-5. process the chat with the chain
-'''
 
-# Get the document from webpage or PDF and split it into chunks
-def document_loader(source_type, path):
-
-    # Load documents
-    if source_type == "web":
-        loader = WebBaseLoader(path)
-        docs = loader.load()
-    elif source_type == "pdf":
-        loader = PDFPlumberLoader(path)
-        docs = loader.load()
-    else:
-        raise ValueError("Unsupported source type. Use 'web' or 'pdf'.")
-
-    # Split the documents into chunks
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 500,
-        chunk_overlap = 50,
-    )
-
-    split_docs = splitter.split_documents(docs)
-
-    return split_docs
-
-# Create a vector store from the documents
-# This will create a FAISS vector store using OpenAI embeddings
-def create_db(docs):
-    embedding = OpenAIEmbeddings()
-    vectorstore = FAISS.from_documents(docs, embedding = embedding)
-
-    return vectorstore
-
-# Create a chain that uses the vector store and web search tool
-def create_chain(vector_store):
+def create_chain():
 
     # llm model
     model = ChatOpenAI(
@@ -140,38 +210,14 @@ def create_chain(vector_store):
 
     #prompt
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "Answer the user's question based on the given context: {context}. If you cannot find the answer, use the web search tool (Tavily)."),
+        ("system", "Answer the user's question using tools if needed"),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}"),
         MessagesPlaceholder(variable_name = "agent_scratchpad")
     ])
 
-    # Parser
-    # output_parser = StrOutputParser()
 
-    # Chain
-    # chain = create_stuff_documents_chain(
-    #     llm = model,
-    #     prompt = prompt,
-    #     output_parser= output_parser
-    # )
-    
-
-    '''
-    AGENTS:
-    1. document from specific webpage (url)
-    2. web search tool (Tavily)
-    '''
-
-    # 1. tool for document
-    retriever = vector_store.as_retriever(search_kwaargs = {"k": 5})  # Convert vector store into a retriever
-    retriever_tool = create_retriever_tool(
-    retriever,
-    "toolbox_search", # identifier for the tool
-    "Use this tool when searching for information about FreeSurfer" # description of the tool
-    )
-
-    # 2. tool for web search
+    # tool for web search
     search = TavilySearch(
         max_results=5,
         topic="general",
@@ -186,8 +232,8 @@ def create_chain(vector_store):
         # country=None
     )
 
-    # List of tools - we have 2 tools here
-    tools = [search, retriever_tool]
+    # List of tools
+    tools = [search, ask_about_pdf , list_files, create_folder]
 
     # Create an agent that uses the LLM, prompt, and tools (no chain here)
     agent = create_openai_functions_agent(
@@ -198,43 +244,18 @@ def create_chain(vector_store):
 
     agentExecutor = AgentExecutor(
         agent = agent,
-        tools = tools
+        tools = tools,
+        # verbose=True
     )
 
     return agentExecutor  # Return the retrieval chain
 
 
 # Function to ask a question
-def process_chat(agentExecutor, question, history, docs):
+def process_chat(agentExecutor, question, history):
     response = agentExecutor.invoke({
         "input": question,
-        "chat_history": history,
-        "context": docs
+        "chat_history": history
     })
 
     return response["output"]
-
-
-
-"""
-How to use this module:
-
-# Main
-if __name__ == "__main__":
-    print("\n_______________________")
-    docs = document_loader("https://en.wikipedia.org/wiki/FreeSurfer")
-    vector_store = create_db(docs)
-    chain = create_chain(vector_store)
-
-    chat_history = []
-
-    while True:
-        user_input = input("You: ")
-        if user_input.lower() == "exit":
-            break
-        response = process_chat(chain, user_input, chat_history)
-        chat_history.append(HumanMessage(content=user_input))
-        chat_history.append(AIMessage(content=response))
-        print("AI: ", response)
-        print("\n")
-"""
