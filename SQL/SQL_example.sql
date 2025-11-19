@@ -224,7 +224,7 @@ JOIN employee_salary AS sal
     
 -- ---------- ADVANCED ------------
 
--- CTE
+-- CTE: Common Table Expression
 WITH CTE_example AS
 (
 SELECT occupation, AVG(salary), MIN(salary), MAX(salary), COUNT(occupation)
