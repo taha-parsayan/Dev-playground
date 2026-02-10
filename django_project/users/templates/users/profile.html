@@ -1,0 +1,5 @@
+{% extends "blog/base.html" %}
+{% load crispy_forms_tags %} <!-- Load the crispy_forms_tags to use the crispy form rendering in the template -->
+{% block content %}
+    <h1 class="mb-4">{{  user.username }}</h1>
+{% endblock content %}

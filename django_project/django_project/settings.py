@@ -32,6 +32,9 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [ 
     'blog.apps.BlogConfig', # Add the blog app to the installed apps
+    'users.apps.UsersConfig', # Add the users app to the installed apps
+    'crispy_forms', # Add crispy_forms to the installed apps for better form styling
+    'crispy_bootstrap5', # Add crispy_bootstrap5 to the installed apps to use Bootstrap 5 for styling the forms
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -105,7 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'CET'
 
 USE_I18N = True
 
@@ -116,3 +119,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Settings for crispy forms to use Bootstrap 5 for styling the forms
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+LOGIN_REDIRECT_URL = 'blog-home' # Redirect to the home page after successful login
+
+LOGIN_URL = 'users-login' # Redirect to the login page if the user is not authenticated and tries to access a login_required view
